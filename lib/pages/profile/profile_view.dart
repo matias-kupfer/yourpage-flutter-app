@@ -18,7 +18,7 @@ class _ProfileState extends State<Profile> {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             var user = snapshot.data;
-            return ProfileCard(user);
+            return ProfileCard(user, true);
           } else {
             return Loader();
           }

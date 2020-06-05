@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:yourpage/services/firestore.dart';
 import 'package:yourpage/shared/constants.dart';
 import 'package:yourpage/shared/loader.dart';
@@ -20,6 +19,30 @@ class _EditProfileState extends State<EditProfile> {
   String bio = '';
   final _formKey = GlobalKey<FormState>();
 
+  Widget _buildBio() {
+    return TextFormField(
+      decoration: InputDecoration(
+          border: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.purple)),
+          hintText: 'Where are you from, what do you like...',
+          labelText: 'Write something about yourself',
+          labelStyle: TextStyle(color: Colors.purple)),
+      maxLines: 5,
+      // ignore: missing_return
+      validator: (String value) {
+        if (value.isEmpty) {
+          return 'What\'s a post without a caption?';
+        }
+        if (value.length > 200) {
+          return 'The caption is too long';
+        }
+      },
+      onSaved: (String value) {
+        bio = value;
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
@@ -34,69 +57,27 @@ class _EditProfileState extends State<EditProfile> {
                 title: Text('Edit profile'),
                 backgroundColor: Colors.transparent,
               ),
-              body: Column(
-                children: <Widget>[
-                  ClipRRect(
-                      borderRadius: BorderRadius.circular(50),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(50),
-                        onTap: null,
-                        child: Container(
-                          child: Image.network(
-                            user['accountInfo']['imageUrl'],
-                            width: 100,
-                            height: 100,
-                          ),
+              body: Padding(
+                padding: const EdgeInsets.only(
+                    left: 15, top: 8, right: 15, bottom: 8),
+                child: Column(
+                  children: <Widget>[
+                    _buildBio(),
+                    RaisedButton(
+                        color: Colors.purple,
+                        child: Text(
+                          'Save',
+                          style: TextStyle(color: Colors.white),
                         ),
-                      )),
-                  Text(
-                    'EDIT PROFILE,' + user['personalInfo']['name'],
-                    style: TextStyle(fontSize: 40),
-                  ),
-                  TextFormField(
-                    // BIOGRAPHY
-                    initialValue: user['accountInfo']['bio'],
-                    cursorColor: Colors.purple,
-                    style: TextStyle(color: Colors.white),
-                    decoration:
-                        textInputDecoration.copyWith(hintText: 'Biography'),
-                    maxLines: 5,
-//                    validator: (val) => val.isEmpty ? 'Enter an email' : null,
-                    onChanged: (val) {
-                      setState(() => bio = val);
-                    },
-                  ),
-                  TextFormField(
-                    // BIOGRAPHY
-                    initialValue: socialLinks['facebook'],
-                    cursorColor: Colors.purple,
-                    style: TextStyle(color: Colors.white),
-                    decoration:
-                        textInputDecoration.copyWith(hintText: 'Facebook'),
-//                    validator: (val) => val.isEmpty ? 'Enter an email' : null,
-                    onChanged: (val) {
-                      setState(() => bio = val);
-                    },
-                  ),
-                  RaisedButton(
-                    color: Colors.purple,
-                    child: Text(
-                      'Login',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    onPressed: () async {
-//                      if (_formKey.currentState.validate()) {
-//                        changeLoadingStatus();
-                      dynamic result = await FirestoreService()
-                          .updateUser(user['personalInfo']['userId'], bio);
-                      if (result == null) {
-//                          changeLoadingStatus();
-//                          setState(() => error = 'there has been a problem');
-                      }
-//                      }
-                    },
-                  ),
-                ],
+                        onPressed: () async {
+                          if (_formKey.currentState.validate()) {
+                            dynamic result = await FirestoreService()
+                                .updateUser(
+                                    user['personalInfo']['userId'], bio);
+                          }
+                        }),
+                  ],
+                ),
               ),
             );
           } else {

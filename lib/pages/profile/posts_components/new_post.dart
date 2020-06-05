@@ -43,7 +43,10 @@ class _NewPostState extends State<NewPost> {
       // ignore: missing_return
       validator: (String value) {
         if (value.isEmpty) {
-          return 'What about the title?';
+          return 'The title is the most important part!';
+        }
+        if (value.length > 30) {
+          return 'The title is too long';
         }
       },
       onSaved: (String value) {
@@ -63,7 +66,10 @@ class _NewPostState extends State<NewPost> {
       // ignore: missing_return
       validator: (String value) {
         if (value.isEmpty) {
-          return 'You forgot the caption';
+          return 'What\'s a post without a caption?';
+        }
+        if (value.length > 200) {
+          return 'The caption is too long';
         }
       },
       onSaved: (String value) {
@@ -113,7 +119,10 @@ class _NewPostState extends State<NewPost> {
       // ignore: missing_return
       validator: (String value) {
         if (value.isEmpty) {
-          return 'Where?';
+          return 'Where was this?';
+        }
+        if (value.length > 15) {
+          return 'City is too long';
         }
       },
       onSaved: (String value) {
@@ -154,7 +163,7 @@ class _NewPostState extends State<NewPost> {
           storageTaskSnapshot = await _uploadTask.onComplete,
           await storageTaskSnapshot.ref.getDownloadURL().then((imageUrl) => {
                 imageUrls.add(imageUrl),
-                FirestoreService().updatePost(widget.uid, postId, imageUrl)
+                FirestoreService().addPostImages(widget.uid, postId, imageUrl)
               }),
         });
     return imageUrls;
@@ -293,7 +302,7 @@ class _NewPostState extends State<NewPost> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: <Widget>[
                             Text(
-                              'upload image/s',
+                              'upload images*',
                               style:
                                   TextStyle(color: Colors.white, fontSize: 40),
                             ),
@@ -335,7 +344,8 @@ class _NewPostState extends State<NewPost> {
                       style: TextStyle(color: Colors.white),
                     ),
                     onPressed: () {
-                      if (!_formKey.currentState.validate()) {
+                      if (!_formKey.currentState.validate() ||
+                          _imageFile.length == 0) {
                         print('not validated');
                         return;
                       }

@@ -42,8 +42,8 @@ class _UserPostsState extends State<UserPosts> {
                         }),
                     if (!found)
                       {
-                        _postsListLength = _postsListLength + 1,
                         _latestPosts.add(newPost.data),
+                        _postsListLength = _postsListLength + 1,
                       },
                   }),
               if (_postsListLength == _latestPosts.length)
@@ -53,17 +53,6 @@ class _UserPostsState extends State<UserPosts> {
                   })
                 }
             });
-  }
-
-  _togglePostLike(updatedPost, action) {
-    // 0 remove --- 1 add
-    FirestoreService().togglePostLike(updatedPost, this.uid, action);
-  }
-
-  void _addComment(int position, String comment) {
-    Comment newComment =
-        Comment(widget.user['accountInfo']['userName'], comment);
-    FirestoreService().addComment(this._latestPosts[position], newComment);
   }
 
   @override
@@ -93,12 +82,15 @@ class _UserPostsState extends State<UserPosts> {
                 child: CustomScrollView(
                   controller: _scrollController,
                   slivers: <Widget>[
+                    SliverAppBar(
+                      title: Text('Posts'),
+                    ),
                     SliverList(
                       delegate: SliverChildBuilderDelegate((context, index) {
                         return Container(
-                          margin: EdgeInsets.all(20.0),
-                          child: PostCard(_latestPosts[index], _togglePostLike,
-                              _addComment, index),
+                          padding: EdgeInsets.only(bottom: 20),
+                          child:
+                              PostCard(_latestPosts[index], widget.user, index),
                         );
                       }, childCount: _latestPosts.length),
                     )

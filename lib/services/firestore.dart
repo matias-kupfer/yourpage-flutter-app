@@ -53,7 +53,8 @@ class FirestoreService {
         .add(newPost.toMap());
   }
 
-  Future<QuerySnapshot> updatePost(String uid, String postId, String imageUrl) {
+  Future<QuerySnapshot> addPostImages(
+      String uid, String postId, String imageUrl) {
     return usersCollection
         .document(uid)
         .collection('posts')
@@ -62,6 +63,14 @@ class FirestoreService {
       'imagesUrls': FieldValue.arrayUnion([imageUrl]),
       'postId': postId
     });
+  }
+
+  Future<void> updatePost(post) {
+    return usersCollection
+        .document(post['userId'])
+        .collection('posts')
+        .document(post['postId'])
+        .updateData(post);
   }
 
   Future<QuerySnapshot> getLatestPostsInfo(DocumentSnapshot lastDocument) {

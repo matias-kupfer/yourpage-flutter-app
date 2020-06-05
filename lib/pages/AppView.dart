@@ -36,9 +36,11 @@ class _AppView extends State<AppView> with TickerProviderStateMixin {
                 var user = snapshot.data;
                 return Scaffold(
                   resizeToAvoidBottomPadding: false,
-                  body: _tab == 0
-                      ? Home()
-                      : _tab == 1 ? Users() : _tab == 2 ? null : Profile(),
+                  body: SafeArea(
+                    child: _tab == 0
+                        ? Home()
+                        : _tab == 1 ? Users() : _tab == 2 ? null : Profile(),
+                  ),
                   backgroundColor: Color(0xff111111),
                   floatingActionButtonLocation:
                       FloatingActionButtonLocation.endFloat,

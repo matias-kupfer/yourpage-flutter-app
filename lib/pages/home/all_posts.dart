@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:yourpage/components/posts_components/post_card.dart';
-import 'package:yourpage/models/comment.dart';
 import 'package:yourpage/services/firestore.dart';
 import 'package:yourpage/shared/loader.dart';
 
@@ -65,16 +64,6 @@ class _AllPostsState extends State<AllPosts> {
             });
   }
 
-  _togglePostLike(updatedPost, action) {
-    // 0 remove --- 1 add
-    FirestoreService().togglePostLike(updatedPost, this.uid, action);
-  }
-
-  void _addComment(int position, String comment) {
-    Comment newComment = Comment(this.user['accountInfo']['userName'], comment);
-    FirestoreService().addComment(this._latestPosts[position], newComment);
-  }
-
   @override
   void initState() {
     _getLatestPostsInfo();
@@ -106,7 +95,7 @@ class _AllPostsState extends State<AllPosts> {
                     : CustomScrollView(
                         controller: _scrollController,
                         slivers: <Widget>[
-                          SliverAppBar(
+                          /*SliverAppBar(
                             backgroundColor: Colors.purple,
                             expandedHeight: 120,
                             flexibleSpace: FlexibleSpaceBar(
@@ -114,14 +103,13 @@ class _AllPostsState extends State<AllPosts> {
                                   ' | ' +
                                   this.user['personalInfo']['name']),
                             ),
-                          ),
+                          ),*/
                           SliverList(
                             delegate:
                                 SliverChildBuilderDelegate((context, index) {
                               return Container(
-                                margin: EdgeInsets.all(20.0),
-                                child: PostCard(_latestPosts[index],
-                                    _togglePostLike, _addComment, index),
+                                child:
+                                    PostCard(_latestPosts[index], user, index),
                               );
                             }, childCount: _latestPosts.length),
                           )

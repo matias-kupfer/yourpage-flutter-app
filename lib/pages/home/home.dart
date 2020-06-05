@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:yourpage/pages/home/all_posts.dart';
+import 'package:yourpage/shared/constants.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -17,7 +18,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     final uid = Provider.of<String>(context);
-    return Container(color: Color(0xff1a1a1a), child: AllPosts());
+    return Container(color: darkGray, child: AllPosts());
   }
 }
 /*  @override

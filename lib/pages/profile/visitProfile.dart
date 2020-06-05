@@ -30,6 +30,7 @@ class _VisitProfileState extends State<VisitProfile> {
               backgroundColor: Colors.black,
               appBar: AppBar(
                 backgroundColor: Colors.transparent,
+                title: Text('@' + user['accountInfo']['userName']),
                 /*title: IconButton(
                     icon: Icon(
                       Icons.exit_to_app,
@@ -39,7 +40,7 @@ class _VisitProfileState extends State<VisitProfile> {
                   ),*/
               ),
               body: StreamProvider<String>.value(
-                  value: AuthService().getUid, child: ProfileCard(user)),
+                  value: AuthService().getUid, child: ProfileCard(user, false)),
             );
           } else {
             return Loader();

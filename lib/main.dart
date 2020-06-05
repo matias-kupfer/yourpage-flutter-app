@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:yourpage/models/user.dart';
 import 'package:yourpage/pages/AppView.dart';
-import 'package:yourpage/pages/auth/login.dart';
-import 'package:yourpage/pages/profile/visitProfile.dart';
 import 'package:yourpage/routing.dart';
 import 'package:yourpage/services/auth.dart';
-import 'package:yourpage/services/firestore.dart';
 
 void main() => runApp(MyApp());
 

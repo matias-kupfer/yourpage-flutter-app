@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:yourpage/components/users_components/user_small_card.dart';
 import 'package:yourpage/services/firestore.dart';
 import 'package:yourpage/shared/loader.dart';
 
@@ -56,37 +57,22 @@ class _AllUsersState extends State<AllUsers> {
             : CustomScrollView(
                 controller: _scrollController,
                 slivers: <Widget>[
-                  SliverAppBar(
+                  /*SliverAppBar(
                     backgroundColor: Colors.purple,
                     expandedHeight: 120,
                     flexibleSpace: FlexibleSpaceBar(
                       title: Text('All users'),
                     ),
-                  ),
+                  ),*/
                   SliverList(
                     delegate: SliverChildBuilderDelegate((context, index) {
-                      return Container(
-                          margin: EdgeInsets.all(20.0),
-                          child: Row(
-                            children: <Widget>[
-                              Text(
-                                _allUsers[index]['accountInfo']['userName'],
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 40),
-                              ),
-                              RaisedButton(
-                                color: Colors.teal,
-                                child: Text(
-                                  'Profile',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                onPressed: () => Navigator.of(context)
-                                    .pushNamed('/profile',
-                                        arguments: _allUsers[index]
-                                            ['accountInfo']['userName']),
-                              )
-                            ],
-                          ));
+                      return Column(
+                        children: <Widget>[
+                          Container(
+                            child: UserSmallCard(_allUsers[index]),
+                          ),
+                        ],
+                      );
                     }, childCount: _allUsers.length),
                   )
                 ],
