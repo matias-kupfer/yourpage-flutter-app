@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:yourpage/services/api.dart';
 import 'package:yourpage/shared/constants.dart';
+import 'dart:convert' as convert;
 
 class UserCard extends StatelessWidget {
+  final uid;
   final user;
 
-  UserCard(this.user);
+  UserCard(this.uid, this.user);
 
   String _getDate() {
     var birthday = new DateTime.fromMillisecondsSinceEpoch(
@@ -26,6 +29,29 @@ class UserCard extends StatelessWidget {
     return age.toString();
   }
 
+  _toggleFollow(action) {
+    var jsonResponse;
+    Api()
+        .toggleFollow(uid, user['personalInfo']['userId'], action)
+        .then((response) => {
+              print(response.statusCode),
+              if (response.statusCode == 200)
+                {
+                  jsonResponse = convert.jsonDecode(response.body),
+                  print(jsonResponse)
+                }
+              else
+                {print('ERROR')}
+            });
+  }
+
+  int _isFollowing() {
+    // 0 same user - 1 following - 2 not following
+    return user['personalInfo']['userId'] == uid
+        ? 0
+        : user['followers'].contains(uid) ? 1 : 2;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -41,9 +67,35 @@ class UserCard extends StatelessWidget {
             fit: BoxFit.cover,
             width: MediaQuery.of(context).size.width,
           ),*/
-          CircleAvatar(
-            radius: 60.0,
-            backgroundImage: NetworkImage(user['accountInfo']['imageUrl']),
+          Column(
+            children: <Widget>[
+              CircleAvatar(
+                radius: 60.0,
+                backgroundImage: NetworkImage(user['accountInfo']['imageUrl']),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: OutlineButton(
+                  hoverColor: Colors.purple,
+                  textColor: Colors.purple,
+                  highlightedBorderColor: Colors.purple,
+                  borderSide: BorderSide(color: Colors.purple),
+                  child: _isFollowing() == 0
+                      ? Text('edit profile')
+                      : _isFollowing() == 1
+                          ? Text('Unfollow')
+                          : Text('Unfollow'),
+                  onPressed: () => {
+                    _isFollowing() == 1
+                        ? _toggleFollow(0)
+                        : _isFollowing() == 2
+                            ? _toggleFollow(1)
+                            : Navigator.of(context)
+                                .pushNamed('/edit_profile', arguments: uid)
+                  },
+                ),
+              ),
+            ],
           ),
           Flexible(
             child: Padding(

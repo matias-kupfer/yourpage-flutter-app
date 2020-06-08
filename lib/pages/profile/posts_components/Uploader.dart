@@ -22,7 +22,7 @@ class _UploaderState extends State<Uploader> {
 
   StorageUploadTask _uploadTask;
 
-  Future<void> _startUpload(String uid) async {
+  /*Future<void> _startUpload(String uid) async {
     var uid = widget.uid;
     String filePath;
     StorageTaskSnapshot storageTaskSnapshot;
@@ -35,7 +35,7 @@ class _UploaderState extends State<Uploader> {
 //          userData.imageUrl = await storageTaskSnapshot.ref.getDownloadURL(),
 //          FirestoreService().updateUser(userData),
         });
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -45,15 +45,12 @@ class _UploaderState extends State<Uploader> {
           stream: _uploadTask.events,
           builder: (_, snapshot) {
             var event = snapshot?.data?.snapshot;
-
             double progressPercent = event != null
                 ? event.bytesTransferred / event.totalByteCount
                 : 0;
-
             return Column(
               children: [
-                if (_uploadTask.isComplete) Text('🎉🎉🎉'),
-
+                if (_uploadTask.isComplete) Text('uploaded!'),
                 if (_uploadTask.isPaused)
                   FlatButton(
                     child: Icon(
@@ -62,7 +59,6 @@ class _UploaderState extends State<Uploader> {
                     ),
                     onPressed: _uploadTask.resume,
                   ),
-
                 if (_uploadTask.isInProgress)
                   FlatButton(
                     child: Icon(
@@ -71,7 +67,6 @@ class _UploaderState extends State<Uploader> {
                     ),
                     onPressed: _uploadTask.pause,
                   ),
-
                 // Progress bar
                 LinearProgressIndicator(value: progressPercent),
                 Text('${(progressPercent * 100).toStringAsFixed(2)} % '),
@@ -80,14 +75,15 @@ class _UploaderState extends State<Uploader> {
           });
     } else {
       // Allows user to decide when to start the upload
-      return FlatButton.icon(
+      return Text('');
+      /*return FlatButton.icon(
         label: Text('Upload', style: TextStyle(color: Colors.white)),
         icon: Icon(
           Icons.cloud_upload,
           color: Colors.teal,
         ),
-        onPressed: () => _startUpload(widget.uid),
-      );
+        onPressed: null,
+      );*/
     }
   }
 }

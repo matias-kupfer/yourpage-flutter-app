@@ -8,41 +8,95 @@ import 'package:yourpage/shared/constants.dart';
 import 'package:yourpage/shared/loader.dart';
 
 import 'comments/comments_view.dart';
-import 'input.dart';
 
-// ignore: must_be_immutable
-class PostCard extends StatelessWidget {
+class PostCard extends StatefulWidget {
   final post;
-  List x = new List();
   final position;
-  var postUser;
   final authUser;
 
   PostCard(this.post, this.authUser, this.position);
 
+  @override
+  _PostCardState createState() => _PostCardState();
+}
+
+class _PostCardState extends State<PostCard> {
+  List x = new List();
+
+  var postUser;
+
+  String comment;
+
+  final _formKey = GlobalKey<FormState>();
+
   bool _showLikeButton() {
-    return post['likes'].contains(authUser['personalInfo']['userId']);
+    return widget.post['likes']
+        .contains(widget.authUser['personalInfo']['userId']);
   }
 
   void _addComment(String comment) {
-    Comment newComment = Comment(authUser['accountInfo']['userName'], comment);
-    FirestoreService().addComment(this.post, newComment);
+    Comment newComment =
+        Comment(widget.authUser['accountInfo']['userName'], comment);
+    FirestoreService().addComment(this.widget.post, newComment);
   }
 
   void _toggleLikeButton() {
     if (_showLikeButton()) {
-      FirestoreService()
-          .togglePostLike(this.post, authUser['personalInfo']['userId'], 0);
+      FirestoreService().togglePostLike(
+          this.widget.post, widget.authUser['personalInfo']['userId'], 0);
     } else {
-      FirestoreService()
-          .togglePostLike(this.post, authUser['personalInfo']['userId'], 1);
+      FirestoreService().togglePostLike(
+          this.widget.post, widget.authUser['personalInfo']['userId'], 1);
     }
+  }
+
+  Widget _buildComment() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextFormField(
+        style: TextStyle(color: Colors.white),
+        cursorColor: Colors.purple,
+        /*// ignore: missing_return
+        validator: (String value) {
+          if (value.isEmpty) {
+            return 'You must have something to say, right?';
+          }
+        },*/
+        onChanged: (val) {
+          setState(() {
+            comment = val;
+          });
+        },
+        decoration: InputDecoration(
+            focusColor: Colors.black12,
+            border: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.purple)),
+            hintText: 'what about a compliment?',
+            labelText: 'Add a comment to the post...',
+            labelStyle: TextStyle(color: Colors.purple),
+            suffixIcon: IconButton(
+              icon: Icon(
+                Icons.add,
+                color: Colors.purple,
+              ),
+              onPressed: comment == null || comment.length == 0
+                  ? null
+                  : () {
+                      _addComment(comment);
+                      setState(() {
+                        comment = '';
+                      });
+                    },
+            )),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-        stream: FirestoreService().getUserById(post['userId']), // get post user
+        stream: FirestoreService().getUserById(widget.post['userId']),
+        // get post user
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             this.postUser = snapshot.data;
@@ -135,7 +189,7 @@ class PostCard extends StatelessWidget {
                         enlargeCenterPage: true,
                         onPageChanged: null,
                       ),
-                      items: post['imagesUrls'].map<Widget>((image) {
+                      items: widget.post['imagesUrls'].map<Widget>((image) {
                         return Container(
                           width: MediaQuery.of(context).size.width,
                           child: Center(
@@ -171,9 +225,9 @@ class PostCard extends StatelessWidget {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                post['title'],
+                                widget.post['title'],
                                 style: TextStyle(
-                                    color: Colors.white, fontSize: 30),
+                                    color: Colors.white, fontSize: 25),
                               ),
                             ),
                           ],
@@ -188,10 +242,10 @@ class PostCard extends StatelessWidget {
                           child: Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              post['caption'],
+                              widget.post['caption'],
                               style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 20,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.w300),
                             ),
                           ),
@@ -208,7 +262,8 @@ class PostCard extends StatelessWidget {
                               RichText(
                                 text: TextSpan(children: [
                                   TextSpan(
-                                      text: (post['likes'].length).toString(),
+                                      text: (widget.post['likes'].length)
+                                          .toString(),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 20)),
@@ -224,7 +279,8 @@ class PostCard extends StatelessWidget {
                                 text: TextSpan(children: [
                                   TextSpan(
                                       text: ' ' +
-                                          (post['comments'].length).toString(),
+                                          (widget.post['comments'].length)
+                                              .toString(),
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 20)),
@@ -239,34 +295,35 @@ class PostCard extends StatelessWidget {
                             ],
                           ),
                         ),
-                        Padding(
-                          padding: EdgeInsets.only(
-                            left: 5,
-                            top: 10,
-                            right: 5,
-                            bottom: 10,
-                          ),
-                          child: Container(
-                            height: 100,
-                            decoration: BoxDecoration(
-                              boxShadow: [
-                                BoxShadow(
-                                  spreadRadius: 0.5,
-                                ),
-                              ],
+                        if (widget.post['comments'].length > 0) ...[
+                          Padding(
+                            padding: EdgeInsets.only(
+                              left: 5,
+                              top: 10,
+                              right: 5,
                             ),
-                            child: new Material(
-                              color: medGray,
-                              child: Comments(post),
+                            child: Container(
+                              height: 100,
+                              decoration: BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                    spreadRadius: 0.5,
+                                  ),
+                                ],
+                              ),
+                              child: new Material(
+                                color: medGray,
+                                child: Comments(widget.post),
+                              ),
                             ),
-                          ),
-                        ),
-                        Input(this._addComment, 'what about a compliment?',
-                            'add a comment to the post...'),
+                          )
+                        ],
+                        _buildComment(),
+                        /*Input(this._addComment, 'what about a compliment?',
+                            'add a comment to the post...'),*/
                         Padding(
                           padding: const EdgeInsets.only(
                             bottom: 10,
-                            top: 10,
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -277,7 +334,9 @@ class PostCard extends StatelessWidget {
                                     Icons.location_on,
                                     color: Colors.orange,
                                   ),
-                                  Text(post['country'] + ' ,' + post['city']),
+                                  Text(widget.post['country'] +
+                                      ' ,' +
+                                      widget.post['city']),
                                 ],
                               ),
                               Row(
@@ -289,7 +348,8 @@ class PostCard extends StatelessWidget {
                                   Text(
                                     DateFormat('dd-MM-yyyy').format(
                                         DateTime.fromMillisecondsSinceEpoch(
-                                            post['date'].seconds * 1000)),
+                                            widget.post['date'].seconds *
+                                                1000)),
                                   ),
                                 ],
                               ),
@@ -302,52 +362,6 @@ class PostCard extends StatelessWidget {
                 ),
               ),
             );
-            /*return Container(
-              child: Column(
-                children: <Widget>[
-                  Text(postUser['accountInfo']['userName'],
-                      style: TextStyle(color: Colors.white, fontSize: 20)),
-                  Image.network(
-                    post['imagesUrls'][0],
-                  ),
-                  Text(post['title'],
-                      style: TextStyle(color: Colors.white, fontSize: 30)),
-                  Text(post['caption'],
-                      style: TextStyle(color: Colors.white, fontSize: 16)),
-                  Row(
-                    children: <Widget>[
-                      IconButton(
-                        icon: Icon(
-                          _showLikeButton()
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color: Colors.red,
-                        ),
-                        onPressed: () {
-                          _toggleLikeButton();
-                        },
-                      ),
-                      Text(post['likes'].length.toString(),
-                          style: TextStyle(color: Colors.white, fontSize: 30)),
-                      Icon(Icons.comment),
-                      Text(post['comments'].length.toString(),
-                          style: TextStyle(color: Colors.white, fontSize: 30)),
-                    ],
-                  ),
-                  Container(
-                    color: Colors.grey[800],
-                    height: 100,
-                    child: Comments(post),
-                  ),
-                  Input(
-                      this.post['postId'],
-                      this.addComment,
-                      'what about a compliment?',
-                      'add a comment (as ' +
-                          authUser['accountInfo']['userName']),
-                ],
-              ),
-            );*/
           } else {
             return Loader();
           }

@@ -31,6 +31,7 @@ class _NewPostState extends State<NewPost> {
   String city;
   final _formKey = GlobalKey<FormState>();
   Post post;
+  bool _isUploading = false;
 
   Widget _buildTitle() {
     return TextFormField(
@@ -132,18 +133,14 @@ class _NewPostState extends State<NewPost> {
   }
 
   void _newPost() {
+    setState(() {
+      _isUploading = true;
+    });
     Post post = new Post(widget.uid, country, city, title, caption);
     FirestoreService().createPost(widget.uid, post).then((document) => {
-          _startUpload(document.documentID).then((imageUrls) => {
-                print('JNEKJFNE RJFNERJNREJ ERJ ER SUCCESS!!!!'),
-                /*FirestoreService()
-                    .updatePost(widget.uid, document.documentID, imageUrls)
-                    .then((res) => {
-                          print('JNEKJFNE RJFNERJNREJ ERJ ER SUCCESS!!!!'),
-                        }),*/
-              }),
+          _startUpload(document.documentID).then((imageUrls) => {}),
         });
-    setState(() => post = new Post(widget.uid, country, city, title, caption));
+//    setState(() => post = new Post(widget.uid, country, city, title, caption));
   }
 
   // UPLOAD IMAGES
@@ -152,7 +149,6 @@ class _NewPostState extends State<NewPost> {
   final storagePath = '/images/posts/';
 
   Future _startUpload(String postId) async {
-    List<String> imageUrls = new List();
     String filePath;
     StorageTaskSnapshot storageTaskSnapshot;
     _imageFile.asMap().forEach((int index, file) async => {
@@ -162,11 +158,25 @@ class _NewPostState extends State<NewPost> {
           }),
           storageTaskSnapshot = await _uploadTask.onComplete,
           await storageTaskSnapshot.ref.getDownloadURL().then((imageUrl) => {
-                imageUrls.add(imageUrl),
-                FirestoreService().addPostImages(widget.uid, postId, imageUrl)
+                FirestoreService()
+                    .addPostImages(widget.uid, postId, imageUrl)
+                    .whenComplete(() => {
+                          if (index == _imageFile.length - 1)
+                            {Navigator.pop(context)}
+                        }),
               }),
         });
-    return imageUrls;
+  }
+
+  void _default() {
+    setState(() => {
+          _isUploading = false,
+          _imageFile = new List(),
+          title = '',
+          caption = '',
+          country = '',
+          city = '',
+        });
   }
 
   // IMAGES
@@ -222,7 +232,7 @@ class _NewPostState extends State<NewPost> {
         child: Column(
           children: <Widget>[
             Container(
-              height: 300,
+              height: 200,
               child: Scaffold(
                 backgroundColor: Colors.black,
 //      body: _imageFile != null
@@ -251,7 +261,11 @@ class _NewPostState extends State<NewPost> {
                                       left: 4.0,
                                       right: 4.0,
                                       bottom: 4.0),
-                                  child: Image.file(_imageFile[index]),
+                                  child: Column(
+                                    children: <Widget>[
+                                      Image.file(_imageFile[index]),
+                                    ],
+                                  ),
                                 ),
                               );
                             }, childCount: _imageFile.length),
@@ -261,10 +275,6 @@ class _NewPostState extends State<NewPost> {
                                 (BuildContext context, int index) {
                               return Column(
                                 children: <Widget>[
-                                  Container(
-                                      height: 300,
-                                      child: Image.file(
-                                          _imageFile[_imageSelected])),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceAround,
@@ -330,30 +340,36 @@ class _NewPostState extends State<NewPost> {
             ),
 //            Container(height: 300, child: UploadImagesView(widget.uid, post)),
             // FORM
-            Form(
-              key: _formKey,
-              child: Column(
-                children: <Widget>[
-                  _buildTitle(),
-                  _buildCaption(),
-                  _buildCountry(),
-                  _buildCity(),
-                  RaisedButton(
-                    child: Text(
-                      'Post',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    onPressed: () {
-                      if (!_formKey.currentState.validate() ||
-                          _imageFile.length == 0) {
-                        print('not validated');
-                        return;
-                      }
-                      _formKey.currentState.save();
-                      _newPost();
-                    },
-                  )
-                ],
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: <Widget>[
+                    _buildTitle(),
+                    _buildCaption(),
+                    _buildCountry(),
+                    _buildCity(),
+                    RaisedButton(
+                      color: Colors.purple,
+                      child: Text(
+                        _isUploading ? 'Uploading...' : 'Post',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onPressed: _isUploading
+                          ? null
+                          : () {
+                              if (!_formKey.currentState.validate() ||
+                                  _imageFile.length == 0) {
+                                print('not validated');
+                                return;
+                              }
+                              _formKey.currentState.save();
+                              _newPost();
+                            },
+                    )
+                  ],
+                ),
               ),
             ),
           ],

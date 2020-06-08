@@ -99,7 +99,7 @@ class _ProfileCardState extends State<ProfileCard> {
                     padding: EdgeInsets.only(bottom: 20),
                     child: Column(
                       children: <Widget>[
-                        index == 0 ? UserCard(widget.user) : Container(),
+                        index == 0 ? UserCard(uid, widget.user) : Container(),
                         _latestPosts.length == 0
                             ? Text(
                                 'USER HAS NO POSTS',

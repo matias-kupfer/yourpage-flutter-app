@@ -81,6 +81,16 @@ class _LoginViewState extends State<LoginView> {
                   ),
                 ],
               ),
+              RaisedButton(
+                color: Colors.green,
+                child: Text(
+                  'Google',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: () async {
+                  dynamic result = await AuthService().accessWithGoogle();
+                },
+              ),
               SizedBox(height: 12.0),
               Text(
                 error,

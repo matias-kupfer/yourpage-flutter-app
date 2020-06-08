@@ -53,7 +53,7 @@ class FirestoreService {
         .add(newPost.toMap());
   }
 
-  Future<QuerySnapshot> addPostImages(
+  Future<void> addPostImages(
       String uid, String postId, String imageUrl) {
     return usersCollection
         .document(uid)

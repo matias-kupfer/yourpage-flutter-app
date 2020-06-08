@@ -24,6 +24,7 @@ dependencies:
   firebase_core: ^0.4.4+3
   firebase_storage: ^3.1.5
   firebase_auth: ^0.16.0
+  google_sign_in: ^4.5.1
   cloud_firestore: ^0.13.5
 
   flutter_spinkit: ^4.1.2+1
