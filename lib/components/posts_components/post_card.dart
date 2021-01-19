@@ -1,11 +1,16 @@
+import 'dart:collection';
 import 'package:yourpage/models/comment.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:yourpage/services/api.dart';
 import 'package:yourpage/services/firestore.dart';
 import 'package:yourpage/shared/constants.dart';
 import 'package:yourpage/shared/loader.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_maps_webservice/places.dart';
+import 'dart:convert' as convert;
 
 import 'comments/comments_view.dart';
 
@@ -22,16 +27,51 @@ class PostCard extends StatefulWidget {
 
 class _PostCardState extends State<PostCard> {
   List x = new List();
-
   var postUser;
+  var _location = 'Loading...';
+  var _lng;
+  var _lat;
+  Set<Marker> _markers = HashSet<Marker>();
+  GoogleMapsPlaces _places =
+      GoogleMapsPlaces(apiKey: "AIzaSyCeTqeBKDJQLwGudXebKf6JfY4PfXfF7qs");
 
   String comment;
+
+  bool _expansionPanelStatus = false;
 
   final _formKey = GlobalKey<FormState>();
 
   bool _showLikeButton() {
     return widget.post['likes']
         .contains(widget.authUser['personalInfo']['userId']);
+  }
+
+  _toggleFollow(action) {
+    var jsonResponse;
+    Api()
+        .toggleFollow(widget.authUser['personalInfo']['userId'],
+            postUser['personalInfo']['userId'], action)
+        .then((response) => {
+              print(response.statusCode),
+              if (response.statusCode == 200)
+                {
+                  jsonResponse = convert.jsonDecode(response.body),
+                  print(jsonResponse)
+                }
+              else
+                {print('ERROR')}
+            });
+  }
+
+  int _isFollowing() {
+    // 0 same user - 1 following - 2 not following
+    return postUser['personalInfo']['userId'] ==
+            widget.authUser['personalInfo']['userId']
+        ? 0
+        : postUser['followers']
+                .contains(widget.authUser['personalInfo']['userId'])
+            ? 1
+            : 2;
   }
 
   void _addComment(String comment) {
@@ -84,6 +124,7 @@ class _PostCardState extends State<PostCard> {
                   : () {
                       _addComment(comment);
                       setState(() {
+                        _formKey.currentState.reset();
                         comment = '';
                       });
                     },
@@ -92,8 +133,23 @@ class _PostCardState extends State<PostCard> {
     );
   }
 
+  void _getLocation() async {
+    PlacesDetailsResponse place =
+        await _places.getDetailsByPlaceId(widget.post['placeId']);
+    setState(() {
+      _lat = place.result.geometry.location.lat;
+      _lng = place.result.geometry.location.lng;
+      _markers.add(Marker(
+        markerId: MarkerId("0"),
+        position: LatLng(_lat, _lng),
+      ));
+      _location = place.result.formattedAddress;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    _getLocation();
     return StreamBuilder(
         stream: FirestoreService().getUserById(widget.post['userId']),
         // get post user
@@ -128,30 +184,40 @@ class _PostCardState extends State<PostCard> {
                           child: Text(postUser['accountInfo']['userName'])),
                       trailing: PopupMenuButton<int>(
                         itemBuilder: (context) => [
-                          PopupMenuItem(
-                            value: 1,
-                            child: ListTile(
-                              contentPadding: EdgeInsets.only(
-                                left: 5,
-                                right: 5,
-                                top: 0,
-                                bottom: 0,
-                              ),
-                              leading: Icon(Icons.group_add),
-                              title: Align(
-                                child: Text(
-                                  "Follow",
-                                  style: TextStyle(color: Colors.white),
+                          if (_isFollowing() != 0) ...[
+                            PopupMenuItem(
+                              value: 1,
+                              child: ListTile(
+                                contentPadding: EdgeInsets.only(
+                                  left: 5,
+                                  right: 5,
+                                  top: 0,
+                                  bottom: 0,
                                 ),
-                                alignment: Alignment(-1.5, 0),
+                                leading: _isFollowing() == 1
+                                    ? Icon(Icons.do_not_disturb)
+                                    : Icon(Icons.group_add),
+                                title: Align(
+                                  child: Text(
+                                    _isFollowing() == 1 ? 'Unfollow' : 'Follow',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  alignment: Alignment(-1.5, 0),
+                                ),
+                                onTap: () => {
+                                  _isFollowing() == 1
+                                      ? _toggleFollow(1)
+                                      : _toggleFollow(0),
+                                  Navigator.pop(context)
+                                },
                               ),
-                            ),
-                            /*Text(
+                              /*Text(
                               "Follow",
                               style: TextStyle(
                                   color: Colors.white),
                             ),*/
-                          ),
+                            )
+                          ],
                           PopupMenuItem(
                             value: 1,
                             child: ListTile(
@@ -318,41 +384,44 @@ class _PostCardState extends State<PostCard> {
                             ),
                           )
                         ],
-                        _buildComment(),
+                        Form(key: _formKey, child: _buildComment()),
                         /*Input(this._addComment, 'what about a compliment?',
                             'add a comment to the post...'),*/
                         Padding(
                           padding: const EdgeInsets.only(
                             bottom: 10,
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: <Widget>[
-                              Row(
-                                children: <Widget>[
-                                  Icon(
-                                    Icons.location_on,
-                                    color: Colors.orange,
-                                  ),
-                                  Text(widget.post['country'] +
-                                      ' ,' +
-                                      widget.post['city']),
-                                ],
-                              ),
-                              Row(
-                                children: <Widget>[
-                                  Icon(
-                                    Icons.date_range,
-                                    color: Colors.blueAccent,
-                                  ),
-                                  Text(
-                                    DateFormat('dd-MM-yyyy').format(
+                          child: ExpansionPanelList(
+                            expansionCallback:
+                                (int index, bool isExpanded) {
+                              _expansionPanelStatus =
+                                  !_expansionPanelStatus;
+                            },
+                            children: [
+                              ExpansionPanel(
+                                headerBuilder: (BuildContext context,
+                                    bool isExpanded) {
+                                  return ListTile(
+                                    title: Text(DateFormat('dd-MM-yyyy').format(
                                         DateTime.fromMillisecondsSinceEpoch(
                                             widget.post['date'].seconds *
-                                                1000)),
-                                  ),
-                                ],
-                              ),
+                                                1000)) + ' · ' + _location),
+                                  );
+                                },
+                                body: SizedBox(
+                                  height: 200,
+                                  child: _lat != null ? GoogleMap(
+//                                      onMapCreated: _onMapCreated,
+                                    markers: _markers,
+                                    mapType: MapType.normal,
+                                    initialCameraPosition: CameraPosition(
+                                        target: LatLng(_lat, _lng),
+                                        zoom: 10),
+//                                      markers: _markers,
+                                  ) : Loader(),
+                                ),
+                                isExpanded: _expansionPanelStatus,
+                              )
                             ],
                           ),
                         )

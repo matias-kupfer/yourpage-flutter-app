@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
 import 'package:yourpage/services/api.dart';
 import 'package:yourpage/shared/constants.dart';
 import 'dart:convert' as convert;
@@ -82,14 +83,12 @@ class UserCard extends StatelessWidget {
                   borderSide: BorderSide(color: Colors.purple),
                   child: _isFollowing() == 0
                       ? Text('edit profile')
-                      : _isFollowing() == 1
-                          ? Text('Unfollow')
-                          : Text('Unfollow'),
+                      : _isFollowing() == 1 ? Text('Unfollow') : Text('Follow'),
                   onPressed: () => {
                     _isFollowing() == 1
-                        ? _toggleFollow(0)
+                        ? _toggleFollow(1)
                         : _isFollowing() == 2
-                            ? _toggleFollow(1)
+                            ? _toggleFollow(0)
                             : Navigator.of(context)
                                 .pushNamed('/edit_profile', arguments: uid)
                   },
@@ -185,7 +184,8 @@ class UserCard extends StatelessWidget {
                               Icons.location_on,
                               color: Colors.orange,
                             ),
-                            Text(user['accountInfo']['country']),
+                            Text('location'),
+//                            Text(user['accountInfo']['country']),
                           ],
                         ),
                         Row(
@@ -194,11 +194,13 @@ class UserCard extends StatelessWidget {
                               Icons.date_range,
                               color: Colors.blueAccent,
                             ),
-                            Text('date'
-                                /*DateFormat('dd-MM-yyyy').format(
-                              DateTime.fromMillisecondsSinceEpoch(
-                                  user['date'].seconds * 1000)),*/
-                                ),
+                            Text(
+                              DateFormat('dd-MM-yyyy').format(
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                      user['accountInfo']['registrationDate']
+                                              .seconds *
+                                          1000)),
+                            ),
                           ],
                         ),
                       ],

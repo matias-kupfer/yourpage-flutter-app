@@ -20,7 +20,7 @@ class ProfileCard extends StatefulWidget {
 class _ProfileCardState extends State<ProfileCard> {
   List _latestPosts = new List();
   String uid;
-  bool _showLoader;
+  bool _showLoader = true;
   int _postsListLength = 0;
   bool _isLastPost = false;
   DocumentSnapshot _lastDocument;
@@ -28,7 +28,7 @@ class _ProfileCardState extends State<ProfileCard> {
 
   _getPosts() {
     bool found = false;
-    _showLoader = true;
+//    _showLoader = true;
     FirestoreService()
         .getUserPosts(widget.user, _lastDocument)
         .snapshots()
@@ -48,12 +48,9 @@ class _ProfileCardState extends State<ProfileCard> {
                         _postsListLength = _postsListLength + 1,
                       },
                   }),
-              if (_postsListLength == _latestPosts.length)
-                {
-                  setState(() {
-                    _showLoader = false;
-                  })
-                }
+              setState(() {
+                _showLoader = false;
+              })
             });
   }
 
@@ -105,7 +102,13 @@ class _ProfileCardState extends State<ProfileCard> {
                                 'USER HAS NO POSTS',
                                 style: TextStyle(color: Colors.white),
                               )
-                            : PostCard(_latestPosts[index], widget.user, index),
+                            : Padding(
+                                padding: const EdgeInsets.fromLTRB(0, 0, 0, 80),
+                                child: Container(
+                                  child: PostCard(
+                                      _latestPosts[index], widget.user, index),
+                                ),
+                              ),
                       ],
                     ),
                   );

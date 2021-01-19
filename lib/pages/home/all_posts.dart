@@ -14,14 +14,14 @@ class _AllPostsState extends State<AllPosts> {
   var user;
   List _latestPosts = new List();
   String uid;
-  bool _showLoader;
+  bool _showLoader = true;
   int _postsListLength = 0;
   bool _isLastPost = false;
   DocumentSnapshot _lastDocument;
   ScrollController _scrollController = ScrollController();
 
   _getLatestPostsInfo() {
-    _showLoader = true;
+//    _showLoader = false;
     FirestoreService()
         .getLatestPostsInfo(_lastDocument)
         .then((QuerySnapshot res) => {
@@ -55,7 +55,8 @@ class _AllPostsState extends State<AllPosts> {
                 {
                   _latestPosts.add(querySnapshot.data),
                 },
-              if (_postsListLength == _latestPosts.length)
+//              if (_postsListLength == _latestPosts.length)
+              if (_postsListLength > 0 && _showLoader)
                 {
                   setState(() {
                     _showLoader = false;
@@ -86,8 +87,9 @@ class _AllPostsState extends State<AllPosts> {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             this.user = snapshot.data;
-            return !_showLoader
-                ? _latestPosts.length == 0
+            return _showLoader
+                ? Loader()
+                : !_showLoader && _latestPosts.length == 0
                     ? Text(
                         'no posts',
                         style: TextStyle(color: Colors.white),
@@ -96,26 +98,30 @@ class _AllPostsState extends State<AllPosts> {
                         controller: _scrollController,
                         slivers: <Widget>[
                           /*SliverAppBar(
-                            backgroundColor: Colors.purple,
-                            expandedHeight: 120,
+                            expandedHeight: 150,
                             flexibleSpace: FlexibleSpaceBar(
-                              title: Text('All posts' +
-                                  ' | ' +
-                                  this.user['personalInfo']['name']),
+                              title: Text('ALL POSTS'),
                             ),
                           ),*/
                           SliverList(
                             delegate:
                                 SliverChildBuilderDelegate((context, index) {
-                              return Container(
-                                child:
-                                    PostCard(_latestPosts[index], user, index),
+                              return index == _latestPosts.length - 1
+                                  ? Padding(
+                                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 80),
+                                    child: Container(
+                                        child: PostCard(
+                                            _latestPosts[index], user, index),
+                                      ),
+                                  )
+                                  : Container(
+                                child: PostCard(
+                                    _latestPosts[index], user, index),
                               );
                             }, childCount: _latestPosts.length),
                           )
                         ],
-                      )
-                : Loader();
+                      );
 //                : Loader();
           } else {
             return Loader();

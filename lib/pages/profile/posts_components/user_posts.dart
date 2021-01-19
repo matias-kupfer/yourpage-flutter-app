@@ -18,7 +18,7 @@ class UserPosts extends StatefulWidget {
 class _UserPostsState extends State<UserPosts> {
   List _latestPosts = new List();
   String uid;
-  bool _showLoader;
+  bool _showLoader = true;
   int _postsListLength = 0;
   bool _isLastPost = false;
   DocumentSnapshot _lastDocument;
@@ -26,7 +26,7 @@ class _UserPostsState extends State<UserPosts> {
 
   _getPosts() {
     bool found = false;
-    _showLoader = true;
+//    _showLoader = true;
     FirestoreService()
         .getUserPosts(widget.user, _lastDocument)
         .snapshots()
@@ -46,7 +46,8 @@ class _UserPostsState extends State<UserPosts> {
                         _postsListLength = _postsListLength + 1,
                       },
                   }),
-              if (_postsListLength == _latestPosts.length)
+//              if (_postsListLength == _latestPosts.length)
+              if (_postsListLength > 0 && _showLoader)
                 {
                   setState(() {
                     _showLoader = false;
@@ -72,31 +73,42 @@ class _UserPostsState extends State<UserPosts> {
   @override
   Widget build(BuildContext context) {
     this.uid = Provider.of<String>(context);
-    return !_showLoader
-        ? _latestPosts.length == 0
+    return _showLoader
+        ? Loader()
+        : !_showLoader && _latestPosts.length == 0
             ? Text(
-                'USER HAS NO POSTS',
+                'no posts',
                 style: TextStyle(color: Colors.white),
               )
-            : Expanded(
-                child: CustomScrollView(
-                  controller: _scrollController,
-                  slivers: <Widget>[
-                    SliverAppBar(
-                      title: Text('Posts'),
-                    ),
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        return Container(
-                          padding: EdgeInsets.only(bottom: 20),
-                          child:
-                              PostCard(_latestPosts[index], widget.user, index),
-                        );
-                      }, childCount: _latestPosts.length),
-                    )
-                  ],
-                ),
-              )
-        : Loader();
+            : ListView.builder(
+              controller: _scrollController,
+              itemCount: _latestPosts.length,
+              itemBuilder: ((context, index) {
+                return Container(
+                  padding: EdgeInsets.only(bottom: 100),
+                  child: PostCard(_latestPosts[1], widget.user, index),
+                );
+              }),
+            );
   }
 }
+/*
+Expanded(
+child: CustomScrollView(
+controller: _scrollController,
+slivers: <Widget>[
+SliverAppBar(
+title: Text('Posts'),
+),
+SliverList(
+delegate: SliverChildBuilderDelegate((context, index) {
+return Container(
+padding: EdgeInsets.only(bottom: 20),
+child:
+PostCard(_latestPosts[index], widget.user, index),
+);
+}, childCount: _latestPosts.length),
+)
+],
+),
+);*/

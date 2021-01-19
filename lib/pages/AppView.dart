@@ -75,6 +75,7 @@ class _AppView extends State<AppView> with TickerProviderStateMixin {
                     ],
                   ),
                   bottomNavigationBar: BottomNavigationBar(
+                    type: BottomNavigationBarType.fixed,
                     backgroundColor: Colors.grey[900],
                     currentIndex: _tab,
                     selectedIconTheme: IconThemeData(color: Colors.purple),
@@ -82,7 +83,6 @@ class _AppView extends State<AppView> with TickerProviderStateMixin {
                     showUnselectedLabels: false,
                     showSelectedLabels: true,
                     iconSize: 30,
-                    type: BottomNavigationBarType.fixed,
                     items: const <BottomNavigationBarItem>[
                       BottomNavigationBarItem(
                         icon: Icon(OMIcons.home),

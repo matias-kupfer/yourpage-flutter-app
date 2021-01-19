@@ -35,12 +35,12 @@ class AuthService {
   Future accessWithGoogle() async {
     try {
       print('- - - - - - - INSIDE TRY');
-      GoogleSignIn googleSignIn = GoogleSignIn();
+      GoogleSignIn googleSignIn = new GoogleSignIn();
       GoogleSignInAccount account = await googleSignIn.signIn();
       GoogleSignInAuthentication googleAuth = await account.authentication;
       await _auth.signInWithCredential(GoogleAuthProvider.getCredential(
-        accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
+        accessToken: googleAuth.accessToken,
       ));
     } catch (e) {
       print('- - - - - - - INSIDE CATCH');
